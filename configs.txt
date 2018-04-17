@@ -1,0 +1,241 @@
+config_dict = {'base_model': 'InceptionV3', 
+               'num_dense_layers': 2,
+               'num_dense_units_0': 1024,
+               'num_dense_units_1': 1024,
+               'num_dense_units_2': 1024,
+               'activation': 'relu',
+               'dropout': True,
+               'dropout_0': 0.5,   # better 1.0 at this point
+               'dropout_1': 0.5,
+               'dropout_2': 0.5,
+               'optimizer': "RMSProp",
+               'learning_rate': 0.001,
+               'cnn_learning_rate': 0.0002,               
+               'cnn_unlock_epoch': 40,
+               'unfreeze_percentage': 0.2,
+               'batch_size': 16}
+
+
+config_dict = {'base_model': 'InceptionV3', 
+               'num_dense_layers': 2,
+               'num_dense_units_0': 1024,
+               'num_dense_units_1': 1024,
+               'num_dense_units_2': 1024,
+               'activation': 'relu',
+               'dropout': True,
+               'dropout_0': 1.0,
+               'dropout_1': 0.5,
+               'dropout_2': 0.5,
+               'optimizer': "RMSProp",
+               'learning_rate': 0.001,
+               'cnn_learning_rate': 0.0001,               
+               'cnn_unlock_epoch': 40,
+               'unfreeze_percentage': 0.2,
+               'batch_size': 16}
+
+config_dict = {'base_model': 'Xception', 
+               'num_dense_layers': 2,
+               'num_dense_units_0': 1024,
+               'num_dense_units_1': 1024,
+               'num_dense_units_2': 1024,
+               'activation': 'relu',
+               'dropout': True,
+               'dropout_0': 1.0,
+               'dropout_1': 0.5,
+               'dropout_2': 0.5,
+               'optimizer': "RMSProp",
+               'learning_rate': 0.001,
+               'cnn_learning_rate': 0.0001,               
+               'cnn_unlock_epoch': 20,
+               'unfreeze_percentage': 0.2,
+               'batch_size': 16}
+
+# runs, but poor performance (acc <0,2 at 10 classes)
+config_dict = {'base_model': 'ResNet50', 
+               'num_dense_layers': 2,
+               'num_dense_units_0': 1024,
+               'num_dense_units_1': 1024,
+               'num_dense_units_2': 1024,
+               'activation': 'relu',
+               'dropout': True,
+               'dropout_0': 1.0,
+               'dropout_1': 0.5,
+               'dropout_2': 0.5,
+               'optimizer': "RMSProp",
+               'learning_rate': 0.001,
+               'cnn_learning_rate': 0.0001,               
+               'cnn_unlock_epoch': 20,
+               'unfreeze_percentage': 0.2,
+               'batch_size': 16}
+
+# runs, losses go down, but no generalistion (acc <0,1 at 10 classes)
+config_dict = {'base_model': 'ResNet50', 
+               'num_dense_layers': 2,
+               'num_dense_units_0': 1024,
+               'num_dense_units_1': 1024,
+               'num_dense_units_2': 1024,
+               'activation': 'relu',
+               'dropout': True,
+               'dropout_0': 1.0,
+               'dropout_1': 0.5,
+               'dropout_2': 0.5,
+               'optimizer': "RMSProp",
+               'learning_rate': 0.001,
+               'cnn_learning_rate': 0.0001,               
+               'cnn_unlock_epoch': 20,
+               'unfreeze_percentage': 0.2,
+               'batch_size': 16}
+
+# fast and excellent performance: val_acc = 0.6
+config_dict = {'base_model': 'MobileNet', 
+               'num_dense_layers': 2,
+               'num_dense_units_0': 1024,
+               'num_dense_units_1': 1024,
+               'num_dense_units_2': 1024,
+               'activation': 'relu',
+               'dropout': True,
+               'dropout_0': 1.0,
+               'dropout_1': 0.5,
+               'dropout_2': 0.5,
+               'optimizer': "RMSProp",
+               'learning_rate': 0.001,
+               'cnn_learning_rate': 0.0001,               
+               'cnn_unlock_epoch': 20,
+               'unfreeze_percentage': 0.1,
+               'batch_size': 16}
+
+# val_acc = 0.6
+config_dict = {'base_model': 'InceptionResNetV2', 
+               'num_dense_layers': 2,
+               'num_dense_units_0': 1024,
+               'num_dense_units_1': 1024,
+               'num_dense_units_2': 1024,
+               'activation': 'relu',
+               'dropout': True,
+               'dropout_0': 1.0,
+               'dropout_1': 0.5,
+               'dropout_2': 0.5,
+               'optimizer': "RMSProp",
+               'learning_rate': 0.001,
+               'cnn_learning_rate': 0.0001,               
+               'cnn_unlock_epoch': 20,
+               'unfreeze_percentage': 0.1,
+               'batch_size': 16}
+
+num_classes = 20
+config_dict = {'base_model': 'InceptionResNetV2', 
+               'num_dense_layers': 3,
+               'num_dense_units_0': 1024,
+               'num_dense_units_1': 1024,
+               'num_dense_units_2': 1024,
+               'activation': 'relu',
+               'dropout': True,
+               'dropout_0': 1.0,
+               'dropout_1': 0.5,
+               'dropout_2': 0.5,
+               'optimizer': "RMSProp",
+               'learning_rate': 0.001,    
+               'cnn_learning_rate': 0.0001,               
+               'cnn_unlock_epoch': 20,
+               'unfreeze_percentage': 0.2,             
+               'batch_size': 16}
+20+20 epochs --> val_acc 0.2
+
+
+num_classes = 20
+config_dict = {'base_model': 'MobileNet', 
+               'num_dense_layers': 3,
+               'num_dense_units_0': 1024,
+               'num_dense_units_1': 1024,
+               'num_dense_units_2': 1024,
+               'activation': 'relu',
+               'dropout': True,
+               'dropout_0': 1.0,
+               'dropout_1': 0.5,
+               'dropout_2': 0.5,
+               'optimizer': "RMSProp",
+               'learning_rate': 0.001,    
+               'cnn_learning_rate': 0.0001,               
+               'cnn_unlock_epoch': 20,
+               'unfreeze_percentage': 0.2,             
+               'batch_size': 16}
+20+20 epochs --> val_acc 0.63
+
+num_classes = 20
+config_dict = {'base_model': 'InceptionV3', 
+               'num_dense_layers': 3,
+               'num_dense_units_0': 1024,
+               'num_dense_units_1': 1024,
+               'num_dense_units_2': 1024,
+               'activation': 'relu',
+               'dropout': True,
+               'dropout_0': 1.0,
+               'dropout_1': 0.5,
+               'dropout_2': 0.5,
+               'optimizer': "RMSProp",
+               'learning_rate': 0.001,    
+               'cnn_learning_rate': 0.0001,               
+               'cnn_unlock_epoch': 20,
+               'unfreeze_percentage': 0.2,             
+               'batch_size': 16
+20+20 epochs --> val_acc 0.288
+
+num_classes = 20
+config_dict = {'base_model': 'InceptionV3', 
+               'num_dense_layers': 2,     # better than 3 with InceptionV3
+               'num_dense_units_0': 1024,
+               'num_dense_units_1': 1024,
+               'num_dense_units_2': 1024,
+               'activation': 'relu',
+               'dropout': True,
+               'dropout_0': 1.0,
+               'dropout_1': 0.5,
+               'dropout_2': 0.5,
+               'optimizer': "RMSProp",
+               'learning_rate': 0.001,    
+               'cnn_learning_rate': 0.0001,               
+               'cnn_unlock_epoch': 20,
+               'unfreeze_percentage': 0.2,             
+               'batch_size': 16
+20+20 epochs --> val_acc 0.33
+
+num_classes = 20
+config_dict = {'base_model': 'Xception', 
+               'num_dense_layers': 2,
+               'num_dense_units_0': 1024,
+               'num_dense_units_1': 1024,
+               'num_dense_units_2': 1024,
+               'activation': 'relu',
+               'dropout': True,
+               'dropout_0': 1.0,
+               'dropout_1': 0.5,
+               'dropout_2': 0.5,
+               'optimizer': "RMSProp",
+               'learning_rate': 0.001,    
+               'cnn_learning_rate': 0.0001,               
+               'cnn_unlock_epoch': 20,
+               'unfreeze_percentage': 0.2,             
+               'batch_size': 16}
+20+20 epochs --> val_acc 0.34
+
+ResNet lernt nix 
+
+num_classes = 20
+config_dict = {'base_model': 'InceptionV3', 
+               'num_dense_layers': 2,
+               'num_dense_units_0': 1024,
+               'num_dense_units_1': 1024,
+               'num_dense_units_2': 1024,
+               'activation': 'relu',
+               'dropout': True,
+               'dropout_0': 1.0,
+               'dropout_1': 0.5,
+               'dropout_2': 0.5,
+               'optimizer': "Adam",
+               'learning_rate': 0.003,    # higher learning rates and Adam
+               'cnn_learning_rate': 0.0003,               
+               'cnn_unlock_epoch': 20,
+               'unfreeze_percentage': 0.2,             
+               'batch_size': 16}
+20+20 epochs --> val_acc 0.37
++20 epochs --> val_acc 0.5

@@ -2,6 +2,7 @@
 # classification.
 
 # utility functions
+# git test
 
 import os
 import copy
@@ -9,7 +10,29 @@ import csv
 import numpy as np
 import random
 import shutil
+import matplotlib
+# matplotlib.use('Agg')
+import pickle
 import matplotlib.pyplot as plt
+
+
+def pickle_from_file(fname):
+    
+    # path = os.path.join("plots/", fname+".pickle") 
+    path = fname+".pickle"
+    with open(path, 'rb') as handle:
+        obj = pickle.load(handle)
+        
+    return obj
+    
+    
+def pickle_to_file(obj, fname):
+    
+    # path = os.path.join("plots/", fname+".pickle")
+    path = fname+".pickle"
+    with open(path, 'wb') as handle:
+        pickle.dump(obj, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
 
 # read train.csv, return list of tuples (filename,whale_name)
 def read_csv(file_name = "data/train.csv"):
@@ -56,7 +79,7 @@ def write_csv_dict(csv_dict, keys=None, include_header=True, filename="csv.csv")
 
 
 # generate sorted list clustered by individuals: 
-# (name, number of images, array of indeces into train_list)
+# (name, number of images, array of indices into train_list)
 def get_whales(train_list):
 
     train_arr = np.asarray(train_list)
@@ -71,10 +94,22 @@ def get_whales(train_list):
     # sort by frequency of occurence in descending order 
     whales.sort(key=lambda x:x[1], reverse=True)
     counts=[whale[1] for whale in whales]      # list of numbers of individuals ([34,25,24...])
-
+    
+    # only to know, how many non unique whales to train only on these
+    '''
+    non_unique_whales = 0
+    non_unique_images = 0
+    for count in counts:
+        if count > 1:
+            non_unique_images += count
+            non_unique_whales += 1
+    print("total number of non unique images", non_unique_images)
+    print("total number of non unique whales", non_unique_whales)
+    '''
     return whales, counts
 
 def show_histogram(num = 100, file_name = "data/train.csv"):
+    print("read train.csv")
     train_list = read_csv(file_name = file_name)
     _, counts = get_whales(train_list)    
     plt.hist(counts[1:num], bins=counts[1], color="b", align = "left", rwidth=0.75)  # skip first entry "new whale"
@@ -137,6 +172,53 @@ def show_whales(whale_no, folder="data/train", csv_file="data/train.csv",
     
     plot_whales(imgs, labels=label_list, rows=rows)
 
+    
+        
+def split_train_valid(whale_img_indices, train_valid, valid_dir, bag_no):
+   
+    indices = copy.deepcopy(whale_img_indices)
+
+    if bag_no == 0:   #  no bagging: 
+
+        # random.shuffle(indices)
+        if valid_dir == None:      # no validation
+            train_indices = indices
+            valid_indices = np.array([])
+
+        else:                      # split data into training and validation
+            if len(indices) == 1: 
+                # allow validation also, if only one image per whale: 
+                # data augmentation during training will create different image, so validation makes sense
+                train_indices = indices
+                valid_indices = indices
+            else:
+                split = max(int(len(indices)*train_valid),1)   # at least one training / validation sample
+                train_indices = indices[:split]
+                valid_indices = indices[split:]
+    else:      # 
+        if valid_dir == None:      # no validation
+            print("error: when bagging, need validation directory")
+        else:                      # split data into training and validation
+            if len(indices) == 1: 
+                print("error: when bagging, only whales with at least two images")
+            else:
+                # simulate bootstrapping: ~30% validation data
+                # actually take every third sample within this class for validation, the rest for training
+                # with alternating starting points for this count. example: 10 images for this whale
+                # first round:  train_idx=[0,3,6,9], valid_idx=[1,2,4,5,7,8]
+                # second round: train_idx=[2, 5, 8],   valid_idx=[0, 1, 3, 4, 6, 7, 9]
+                # third round: train_idx=[1, 4, 7],   valid_idx=[0, 2, 3, 5, 6, 8, 9]               
+                train_indices_list, valid_indices_list = [], []
+                for i, index in enumerate(indices): 
+                    if ((i+bag_no-1) % 3 == 0):
+                        valid_indices_list.append(index)
+                    else:
+                        train_indices_list.append(index)
+                        
+                train_indices, valid_indices = np.array(train_indices_list), np.array(valid_indices_list)
+
+    return train_indices, valid_indices
+    
 '''           
 as a playground reproduce setting (image-files, csv-file, directory structure) 
 with a subset of training data for small case (small number of selected individuals)
@@ -146,12 +228,13 @@ optionally separate samples on training / validation data
 def create_small_case(sel_whales = [1,2,3],             # whales to be considered
       all_train_dir = "data/train",     # directory with original kaggle training data
       all_train_csv = "data/train.csv", # original kaggle train.csv file
-      train_dir = "data/small_train",   # training data actually used by model (subset of kaggle data) 
-      train_csv = None,                 # optional: write kaggle-like CSV File for actual training data
-      valid_dir = "data/small_valid",   # optional: subdirectory with validation data
-      valid_csv = None,                 # optional: write kaggle-like CSV File for validation data
+      train_dir = "data/model_train",   # training data actually used by model (subset of kaggle data) 
+      train_csv = "data/model_train.csv", # optional: write kaggle-like CSV File for actual training data
+      valid_dir = "data/model_valid",   # optional: subdirectory with validation data
+      valid_csv = "data/model_valid.csv",     # optional: write kaggle-like CSV File for validation data
       train_valid = 1.,
-      sub_dirs = True):                 # optional create subdirectory for each class (as required by keras)
+      sub_dirs = True,                  # optional: create subdir for each class (as required by keras)
+      bag_no = 0):                      # if !=0 counter for iterations during bagging
 
     
     if not os.path.isdir(all_train_dir):
@@ -188,7 +271,7 @@ def create_small_case(sel_whales = [1,2,3],             # whales to be considere
 
     train_list=[]
     valid_list=[]    
-    for i in sel_whales:                          
+    for i in sel_whales:
         print("copy {} images for whale # {}, called {}"
               .format(whales[i][1], i, whales[i][0]))
         
@@ -198,23 +281,11 @@ def create_small_case(sel_whales = [1,2,3],             # whales to be considere
             if valid_dir != None:    # another subdir for validation data for this whale
                 valid_path = os.path.join(valid_dir, whales[i][0])
                 os.mkdir(valid_path)
+
                 
         # shuffled list of all images of this particular whale 
-        indices = copy.deepcopy(whales[i][2])
-        random.shuffle(indices)
-        if valid_dir == None:      # no validation
-            train_indices = indices            
-            
-        else:                      # split data into training and validation randomly
-            if len(indices) == 1: 
-                # allow validation also, if only one image per whale: 
-                # data augmentation during training will create different image, so validation makes sense
-                train_indices = indices
-                valid_indices = indices
-            else:
-                split = max(int(len(indices)*train_valid),1)   # at least one training / validation sample
-                train_indices = indices[:split]
-                valid_indices = indices[split:]
+        
+        train_indices, valid_indices = split_train_valid(whales[i][2], train_valid, valid_dir, bag_no)
                 
         for idx in train_indices:   # array of indices of this whale pointing into train_csv list
             fn = all_train_list[idx][0]     # get filename out of train_csv list
@@ -326,7 +397,7 @@ def Dummy_MAP(probs = 'uniform',
         dummy_true_labels.append(rv_discrete(values=(sorted_whales,px)).rvs(size=1)[0])
     
     # to each image in dummy predictions map a ranked list of max_pred whales
-    # as random number between 1 and # of individuals in scenario (indeces in whale list)
+    # as random number between 1 and # of individuals in scenario (indices in whale list)
     # following the distribution as given in "distributed_as"
     dummy_preds = []
     if probs == 'uniform':
@@ -349,6 +420,14 @@ def Dummy_MAP(probs = 'uniform',
     return mean_average_precision(dummy_preds, dummy_true_labels, max_pred)
 
 
+    # for comparison compute MAP generated by Dummy model
+def mean_dummy_MAP(test_csv = "data/model_valid.csv"):
+    test_list = read_csv(file_name = test_csv)    # list with (filename, whalename)    
+    dummy_map = np.mean([Dummy_MAP(probs = 'weighted', distributed_as = test_csv, 
+                                      image_no = len(test_list)) for i in range(5)])
+    print("MAP of Dummy Model averaged over 5 runs: ", dummy_map)
+    return(dummy_map)
+
 # Plotting utilities
 
 def save_plot(x, ys, xlabel, ylabel, path, title=""):
@@ -361,4 +440,100 @@ def save_plot(x, ys, xlabel, ylabel, path, title=""):
     plt.xlabel(xlabel)    
     plt.legend(ys.keys())
     plt.ylabel(ylabel)
+    # plt.yscale('log')       
     plt.savefig(path)
+    plt.show()
+
+def save_plot_2(cnn_after, x, ys, xlabel, ylabel, path, title=""):
+    """Create and save matplotlib plot with the desired data.
+    ys is a dict of data lines with their labels as keys."""
+    plt.figure()
+    for (ylabel, y) in ys.items():
+        line_1 = plt.plot(x[:cnn_after], y[:cnn_after], label = "val acc frozen cnn layers")        
+        line_2 = plt.plot(x[cnn_after:], y[cnn_after:], label = "val acc unfrozen top 2 cnn layers")
+    plt.title("effect of unfreezing top cnn layers \n after training dense layers (20 classes)")
+    plt.xlabel(xlabel)    
+    # plt.legend([line_1,line_2], ['frozen cnn layers', 'unfreezing top 2 cnn layer-blocks'])
+    plt.legend()
+    # plt.legend([line_1,line_2], ['frozen cnn layers', 'gaga'])
+    
+    plt.ylabel(ylabel)
+
+    plt.savefig(path)
+    plt.show()   
+    
+# line_up, = plt.plot([1,2,3], label='Line 2')
+# line_down, = plt.plot([3,2,1], label='Line 1')
+# plt.legend([line_up, line_down], ['Line Up', 'Line Down'])
+    
+    
+# plot twin-bars given labels for x-axis
+def save_bar_plot(results, x_axis_ticks, num_classes):
+    
+    fig, ax = plt.subplots()
+
+    ind = np.arange(len(results))    # the x locations for the groups
+    width = 0.35         # the width of the bars
+    avg_accs = ax.bar(ind, [r[0] for r in results], width, color='b', bottom=0)
+    
+    MAPs = ax.bar(ind + width, [r[1] for r in results], width, color='g', bottom=0)
+
+    ax.set_title('Mean accuracies and MAP\nof pretrained models at {} classes'.format(num_classes))
+    ax.set_xticks(ind + width / 2)
+
+    # bring x-axis labels into printable size            
+    xticks = copy.deepcopy(x_axis_ticks)
+    for i, model in enumerate(xticks): 
+        if model == 'Dummy_model':
+            xticks[i] = 'Dummy\nmodel'
+        elif model == 'InceptionResNetV2':
+            xticks[i] = 'Inception\nResNetV2'             
+    
+    ax.set_xticklabels(xticks)
+
+    ax.legend((avg_accs[0], MAPs[0]), ('accuracy', 'MAP'))
+    ax.autoscale_view()
+    if not os.path.isdir("plots/poster_plots"):
+        os.makedirs("plots/poster_plots")
+    plt.savefig("plots/poster_plots/base_models.png")
+    plt.show()         
+
+# plot twin-bars given labels for x-axis
+def save_plot_num_classes(results, x_axis_ticks):
+    
+    fig, ax = plt.subplots()
+
+    ind = np.arange(len(results))    # the x locations for the groups
+    width = 0.35         # the width of the bars
+    avg_accs = ax.bar(ind, [r[0] for r in results], width, color='b', bottom=0)
+    
+    MAPs = ax.bar(ind + width, [r[1] for r in results], width, color='g', bottom=0)
+
+    ax.set_title('Mean Average Precision (k=5) of model\nversus dummy MAPs for different number of classes')
+    ax.set_xticks(ind + width / 2)
+
+    # bring x-axis labels into printable size            
+    xticks = copy.deepcopy(x_axis_ticks)
+    ax.set_xticklabels(xticks)
+
+    ax.legend((avg_accs[0], MAPs[0]), ('Model MAP', 'Dummy MAP'))
+    ax.autoscale_view()
+    # plt.yscale('log')    
+    if not os.path.isdir("plots/poster_plots"):
+        os.makedirs("plots/poster_plots")
+    plt.savefig("plots/poster_plots/num_classes.png")
+    plt.show()    
+    
+    
+def print_number_of_Whales():
+    csv_list = read_csv()
+    w = get_whales(csv_list)
+    i = 0
+    while(w[1][i] > 1):
+        i = i + 1
+    print("There are", i, "whales with at least 2 train images.")
+    print("There are", len(w[1]), "whales with at least 1 train image.")
+
+
+if __name__ == "__main__":
+    print_number_of_Whales()

@@ -1,0 +1,50 @@
+*************************** 1 Baseline 20 ***********************
+num_classes = 20
+config_dict = {'base_model': 'MobileNet', 
+               'num_dense_layers': 3,
+               'num_dense_units_0': 1024,
+               'num_dense_units_1': 1024,
+               'num_dense_units_2': 1024,
+               'activation': 'relu',
+               'dropout': True,
+               'dropout_0': 1.0,
+               'dropout_1': 0.5,
+               'dropout_2': 0.5,
+               'optimizer': "RMSProp",
+               'learning_rate': 0.001,    
+               'cnn_learning_rate': 0.0001,               
+               'cnn_unlock_epoch': 20,
+               'unfreeze_percentage': 0.2,             
+               'batch_size': 16}
+
+                train_valid_split=.8,
+		save_model_path="model/180411_MobileNet_20cl_20+20_0.2"
+
+40 = 20+20 epochs --> val_acc 0.63
+
+
+*************************** 1 Baseline 2031 ***********************
+num_classes = 2031
+config_dict = {'base_model': 'MobileNet', 
+               'num_dense_layers': 3,
+               'num_dense_units_0': 1024,
+               'num_dense_units_1': 1024,
+               'num_dense_units_2': 1024,
+               'activation': 'relu',
+               'dropout': True,
+               'dropout_0': 1.0,
+               'dropout_1': 0.5,
+               'dropout_2': 0.5,
+               'optimizer': "RMSProp",
+               'learning_rate': 0.001,    
+               'cnn_learning_rate': 0.0001,               
+               'cnn_unlock_epoch': 20,
+               'unfreeze_percentage': 0.2,             
+               'batch_size': 16}
+
+                train_valid_split=.8,
+		save_model_path="model/180411_MobileNet_2031cl_20+30_0.2+30_0.4"
+
+20 + 30(0.2) + 30(0.4) epochs 
+--> val_acc ???
+--> kaggle MAP 
